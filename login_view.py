@@ -16,8 +16,8 @@ class LoginView(arcade.View):
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
         
-        # 创建一个垂直布局容器，设置元素间距
-        self.v_box = arcade.gui.UIBoxLayout(vertical=True, space_between=20)
+        # 创建一个垂直布局容器
+        self.v_box = arcade.gui.UIBoxLayout()
         
         # 添加标题标签
         title_label = arcade.gui.UILabel(
@@ -26,7 +26,7 @@ class LoginView(arcade.View):
             width=400,
             align="center"
         )
-        self.v_box.add(title_label)
+        self.v_box.add(title_label.with_space_around(bottom=20))
         
         # 创建用户名输入框
         self.username_input = arcade.gui.UIInputText(
@@ -38,7 +38,7 @@ class LoginView(arcade.View):
         username_layout = arcade.gui.UIBoxLayout(vertical=False)
         username_layout.add(username_field)
         username_layout.add(self.username_input)
-        self.v_box.add(username_layout)
+        self.v_box.add(username_layout.with_space_around(bottom=15))
         
         # 创建密码输入框
         self.password_input = arcade.gui.UIInputText(
@@ -51,7 +51,7 @@ class LoginView(arcade.View):
         password_layout = arcade.gui.UIBoxLayout(vertical=False)
         password_layout.add(password_field)
         password_layout.add(self.password_input)
-        self.v_box.add(password_layout)
+        self.v_box.add(password_layout.with_space_around(bottom=15))
         
         # 登录按钮
         login_button = arcade.gui.UIFlatButton(
@@ -110,19 +110,21 @@ class LoginView(arcade.View):
             self.window.show_view(game_view)
         
         # 将按钮添加到布局中
-        self.v_box.add(login_button)
-        self.v_box.add(version_switch)
+        self.v_box.add(login_button.with_space_around(bottom=15))
+        self.v_box.add(version_switch.with_space_around(bottom=15))
         
-        # 创建一个UI框架并添加垂直布局
-        frame = arcade.gui.UILayout()
-        frame.add(self.v_box, align_x=SCREEN_WIDTH/2, align_y=SCREEN_HEIGHT/2, anchor_x="center", anchor_y="center")
-        
-        # 添加UI元素到管理器
-        self.manager.add(frame)
+        # 将垂直框添加到管理器中
+        self.manager.add(
+            arcade.gui.UIAnchorWidget(
+                anchor_x="center_x",
+                anchor_y="center_y",
+                child=self.v_box
+            )
+        )
     
     def on_draw(self):
         """渲染登录页面"""
-        self.clear()
+        arcade.start_render()
         self.manager.draw()
         
         # 绘制一些装饰元素，增加90后童年氛围
@@ -136,8 +138,8 @@ class LoginView(arcade.View):
         # 绘制底部提示文字
         arcade.draw_text(
             "登录以体验90后童年的回忆",
-            x=SCREEN_WIDTH / 2,
-            y=100,
+            start_x=SCREEN_WIDTH / 2,
+            start_y=100,
             color=arcade.color.DARK_SLATE_GRAY,
             font_size=14,
             anchor_x="center"
@@ -146,6 +148,7 @@ class LoginView(arcade.View):
     def on_show_view(self):
         """显示视图时的处理"""
         arcade.set_background_color(arcade.color.LIGHT_STEEL_BLUE)
+        self.manager.enable()
     
     def on_hide_view(self):
         """隐藏视图时的处理"""

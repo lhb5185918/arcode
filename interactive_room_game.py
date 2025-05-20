@@ -80,7 +80,7 @@ class Television(InteractiveObject):
         if self.is_active:
             arcade.draw_text(
                 text=f"频道: {self.channels[self.channel]}",
-                x=self.x - 70, y=self.y, 
+                start_x=self.x - 70, start_y=self.y, 
                 color=arcade.color.WHITE, font_size=16, 
                 width=140, align="center"
             )
@@ -129,7 +129,7 @@ class ChildhoodRoom(arcade.Window):
     
     def on_draw(self):
         """渲染游戏画面"""
-        self.clear()
+        arcade.start_render()
         
         # 绘制背景和墙壁
         arcade.draw_rect_filled(
@@ -149,7 +149,7 @@ class ChildhoodRoom(arcade.Window):
         # 绘制使用说明
         arcade.draw_text(
             text="点击电视右下角按钮开/关机\n点击遥控器切换频道",
-            x=20, y=SCREEN_HEIGHT - 60, 
+            start_x=20, start_y=SCREEN_HEIGHT - 60, 
             color=arcade.color.BLACK, font_size=16
         )
     
