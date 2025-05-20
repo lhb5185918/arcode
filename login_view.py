@@ -171,9 +171,16 @@ class LoginView(arcade.View):
             # 获取用户名
             username = self.username_input.text if self.username_input.text else "玩家"
             
-            # 跳转到卧室页面，而不是直接进入游戏
-            bedroom_view = BedroomView(self.use_enhanced_version, username)
-            self.window.show_view(bedroom_view)
+            try:
+                # 跳转到卧室页面，而不是直接进入游戏
+                bedroom_view = BedroomView(self.use_enhanced_version, username)
+                self.window.show_view(bedroom_view)
+            except Exception as e:
+                print(f"切换视图时出错: {e}")
+                # 如果发生错误，可以尝试关闭当前视图，然后再创建新视图
+                self.manager.disable()
+                bedroom_view = BedroomView(self.use_enhanced_version, username)
+                self.window.show_view(bedroom_view)
         
         # 添加一个按钮容器，使按钮并排显示
         button_row = arcade.gui.UIBoxLayout(vertical=False, space_between=20)
@@ -293,12 +300,18 @@ class LoginView(arcade.View):
         """隐藏视图时的处理"""
         self.manager.disable()
 
+# 全局变量，用于确保只创建一个窗口实例
+window = None
+
 def main():
     """主函数"""
-    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    login_view = LoginView()
-    window.show_view(login_view)
-    arcade.run()
+    global window
+    # 如果窗口已存在，则不再创建新窗口
+    if window is None:
+        window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        login_view = LoginView()
+        window.show_view(login_view)
+        arcade.run()
 
 if __name__ == "__main__":
     main() 

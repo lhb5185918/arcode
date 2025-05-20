@@ -4,6 +4,7 @@
 # 一步一步开发游戏
 # 注意：开发过程中避免一个文件过长，避免一个文件过大的问题
 # 你要在开发的过程中不断吸取问题，出现过的问题可以记录到cursor的笔记中，方便后续的开发
+# 需要将游戏的逻辑功能也记录到笔记中，方便后续的开发
 
 # 由于Arcade 3.0版本API不稳定，我们选择降级到Arcade 2.6.17。主要变更：
 # 1. 文本绘制参数为 start_x, start_y（不是 x, y）
@@ -15,10 +16,98 @@
 # 7. 颜色常量有差异：2.6.17中不存在某些颜色如GRAY_GREEN, GRAY_BLUE, GRAY_BROWN, BLUE_PURPLE等，需要使用其他替代颜色
 # 8. 2.6.17中不存在arcade.color.random_color()方法，需要自己实现随机颜色生成函数
 
-# 以下是之前记录的Arcade 3.0 API变更（仅作参考）：
-# 1. 绘制文本时，参数从 start_x, start_y 改为 x, y
-# 2. on_draw 方法中应使用 self.clear() 而非 arcade.start_render()
-# 3. GUI 组件没有 with_space_around() 方法
-# 4. GUI 模块中没有 UISpacer 组件
-# 5. 应直接在 UIBoxLayout 构造函数中设置 space_between 参数来控制元素间距
-# 6. 按钮类型变更：应使用基本的 UIButton，不要使用不存在的 UIFlatButton 或 UITextButton
+# ==================== 游戏已开发功能 ====================
+
+# 1. 系统架构：
+#    - 使用基于View的页面转换系统，实现多场景切换
+#    - 面向对象设计，使用继承机制创建各类交互物品
+#    - 独立的文件结构，避免单文件过大问题
+
+# 2. 登录系统(login_view.py)：
+#    - 动态登录界面，支持用户名和密码输入
+#    - 版本切换功能，可在基础版和增强版间切换
+#    - 动画效果（星星、彩色气球、云朵等）
+#    - 90后风格的彩色UI元素
+
+# 3. 卧室场景(bedroom_view.py)：
+#    - 实现为游戏的过渡页面和中转站
+#    - 开场白文字效果（淡入淡出）
+#    - 玩家名称个性化显示
+#    - 提示信息系统
+
+# 4. 可交互物品系统(bedroom_items.py)：
+#    - 基础物品类(BedroomItem)，实现通用交互方法
+#    - 床(Bed)：点击显示随机信息，展示毛绒玩具
+#    - 书桌(Desk)：带有台灯和学习用品
+#    - 电脑(Computer)：可开关机，四种界面切换(QQ、游戏、网页、聊天)
+#    - 暑假作业(HomeworkBook)：带进度系统，可通过双击增加完成进度
+#    - 窗户(Window)：日夜切换功能，开关窗户，动画效果(星星闪烁、云朵移动)
+
+# 5. 交互方式：
+#    - 左键点击：基本交互
+#    - 右键点击：电脑关机、窗户切换日夜
+#    - 双击：暑假作业进度增加
+#    - 鼠标悬停：显示物品名称和高亮效果
+
+# 6. 增强版游戏(enhanced_game.py)：
+#    - 电视和遥控器联动系统
+#    - 游戏机：开关机和游戏切换
+#    - 收音机：音量和频道调节
+#    - 书架：多本书的阅读功能
+
+# 7. 用户体验功能：
+#    - 消息反馈系统：显示交互结果
+#    - 物品状态记忆：保持物品的开关状态
+#    - 提示信息系统：指导用户如何交互
+#    - 90后怀旧风格的视觉设计
+
+# 8. 动画与视觉效果：
+#    - 动态背景元素
+#    - 文字淡入淡出效果
+#    - 物品交互动画
+#    - 日夜变化的视觉效果
+
+# ==================== 遇到的问题及解决方案 ====================
+
+# 1. 视图对象重用错误：
+#    - 问题描述：登录按钮点击时报错"RuntimeError: You are attempting to pass the same view object between multiple windows."
+#    - 原因分析：在login_view.py的on_login_button_click方法中，每次点击都创建了新的BedroomView对象，但视图对象只能在一个窗口中使用
+#    - 解决方案：
+#      1) 在login_view.py中添加异常处理，捕获视图切换错误并进行恢复：
+#         ```python
+#         try:
+#             bedroom_view = BedroomView(self.use_enhanced_version, username)
+#             self.window.show_view(bedroom_view)
+#         except Exception as e:
+#             print(f"切换视图时出错: {e}")
+#             self.manager.disable()
+#             bedroom_view = BedroomView(self.use_enhanced_version, username)
+#             self.window.show_view(bedroom_view)
+#         ```
+#      2) 修改窗口创建逻辑，确保只创建一个窗口实例：
+#         ```python
+#         # 全局变量，用于确保只创建一个窗口实例
+#         window = None
+#         
+#         def main():
+#             global window
+#             # 如果窗口已存在，则不再创建新窗口
+#             if window is None:
+#                 window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+#                 # ...其余代码
+#         ```
+#      3) 创建单独的main.py作为游戏唯一入口点，避免多个入口文件导致多个窗口实例：
+#         ```python
+#         import arcade
+#         from login_view import LoginView
+#         from interactive_room_game import SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE
+#         
+#         def main():
+#             window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+#             login_view = LoginView()
+#             window.show_view(login_view)
+#             arcade.run()
+#         
+#         if __name__ == "__main__":
+#             main()
+#         ```
