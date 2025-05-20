@@ -1,5 +1,4 @@
 import arcade
-from arcade.text import draw_text
 from interactive_room_game import InteractiveObject
 
 def color_from_hex_string(hex_string):

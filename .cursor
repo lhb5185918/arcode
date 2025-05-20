@@ -11,6 +11,9 @@
 # 3. GUI组件可以使用 with_space_around() 方法
 # 4. 按钮应使用 UIFlatButton 并可通过style字典设置样式
 # 5. 布局使用 UIAnchorWidget 来居中放置UI元素
+# 6. 模块结构不同：在2.6.17中不存在arcade.text和arcade.texture子模块，所有函数直接从arcade主模块导入
+# 7. 颜色常量有差异：2.6.17中不存在某些颜色如GRAY_GREEN, GRAY_BLUE, GRAY_BROWN, BLUE_PURPLE等，需要使用其他替代颜色
+# 8. 2.6.17中不存在arcade.color.random_color()方法，需要自己实现随机颜色生成函数
 
 # 以下是之前记录的Arcade 3.0 API变更（仅作参考）：
 # 1. 绘制文本时，参数从 start_x, start_y 改为 x, y

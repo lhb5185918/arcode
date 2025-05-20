@@ -1,7 +1,5 @@
 import arcade
 import os
-from arcade.text import draw_text
-from arcade.texture import load_texture
 
 # 常量定义
 SCREEN_WIDTH = 1024
