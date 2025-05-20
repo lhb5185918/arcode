@@ -3,3 +3,11 @@
 # 我需要一个90后童年互动房间的游戏，游戏需要包含以下内容：
 # 一步一步开发游戏
 # 注意：开发过程中避免一个文件过长，避免一个文件过大的问题
+# 你要在开发的过程中不断吸取问题，出现过的问题可以记录到cursor的笔记中，方便后续的开发
+
+# Arcade 3.0 API 变更问题记录：
+# 1. 绘制文本时，参数从 start_x, start_y 改为 x, y
+# 2. on_draw 方法中应使用 self.clear() 而非 arcade.start_render()
+# 3. GUI 组件没有 with_space_around() 方法
+# 4. GUI 模块中没有 UISpacer 组件
+# 5. 应直接在 UIBoxLayout 构造函数中设置 space_between 参数来控制元素间距
