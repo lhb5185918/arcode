@@ -2,8 +2,11 @@ import arcade
 import arcade.gui
 import random
 import math
-from enhanced_game import EnhancedChildhoodRoom
-from interactive_room_game import ChildhoodRoom, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE
+# 删除以下导入，因为它们可能在导入时创建窗口
+# from enhanced_game import EnhancedChildhoodRoom
+# from interactive_room_game import ChildhoodRoom, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE
+# 只导入必要的常量
+from interactive_room_game import SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE
 from bedroom_view import BedroomView
 
 # 定义一个随机颜色生成函数，替代arcade.color.random_color()
@@ -173,25 +176,44 @@ class LoginView(arcade.View):
         def on_login_button_click(event):
             # 如果正在切换视图，则忽略重复点击
             if self.is_transitioning:
+                print("正在切换视图，忽略重复点击")
                 return
             
             # 标记正在切换视图
             self.is_transitioning = True
+            print("开始登录流程...")
             
             # 获取用户名
             username = self.username_input.text if self.username_input.text else "玩家"
+            print(f"用户名: {username}")
             
             try:
                 # 禁用UI管理器，防止再次点击
+                print("禁用UI管理器")
                 self.manager.disable()
                 
-                # 创建新的卧室视图
-                bedroom_view = BedroomView(self.use_enhanced_version, username)
+                # 获取当前窗口对象
+                current_window = self.window
+                print(f"当前窗口ID: {id(current_window)}")
                 
-                # 跳转到卧室页面
-                self.window.show_view(bedroom_view)
+                # 使用延迟导入
+                import importlib
+                bedroom_module = importlib.import_module('bedroom_view')
+                
+                # 创建新的卧室视图
+                print("创建卧室视图")
+                bedroom_view = bedroom_module.BedroomView(self.use_enhanced_version, username)
+                print(f"卧室视图ID: {id(bedroom_view)}")
+                
+                # 跳转到卧室页面，关闭防重复点击标记
+                print("准备切换到卧室视图")
+                self.is_transitioning = False
+                current_window.show_view(bedroom_view)
+                print("已切换到卧室视图")
             except Exception as e:
                 print(f"切换视图时出错: {e}")
+                import traceback
+                traceback.print_exc()
                 # 如果出错，重新启用UI管理器
                 self.manager.enable()
                 # 取消正在切换的标记

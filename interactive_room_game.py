@@ -163,9 +163,10 @@ class ChildhoodRoom(arcade.Window):
                 obj.on_click()
 
 def main():
-    """主函数"""
-    game = ChildhoodRoom(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    arcade.run()
+    """主函数 - 仅用于单独运行该文件时"""
+    print("请使用main.py启动游戏")
 
 if __name__ == "__main__":
-    main() 
+    # 不再直接创建窗口和运行游戏
+    print("请使用main.py启动游戏")
+    # main()  # 注释掉，避免直接运行 

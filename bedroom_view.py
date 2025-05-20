@@ -1,8 +1,11 @@
 import arcade
 import random
 import math
-from enhanced_game import EnhancedChildhoodRoom
-from interactive_room_game import ChildhoodRoom, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE
+# 删除这些导入，避免窗口创建
+# from enhanced_game import EnhancedChildhoodRoom
+# from interactive_room_game import ChildhoodRoom, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE
+# 只导入必要的常量
+from interactive_room_game import SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE
 from bedroom_items import Bed, Desk, Computer, HomeworkBook, Window
 
 class BedroomView(arcade.View):
@@ -183,16 +186,38 @@ class BedroomView(arcade.View):
     def direct_to_game(self):
         """创建并切换到游戏视图"""
         try:
+            print("正在准备切换到游戏视图...")
+            
+            # 使用延迟导入，避免循环导入问题
+            import importlib
+            
+            # 导入room_view模块
+            room_view_module = importlib.import_module('room_view')
+            print("已动态导入RoomGameView模块")
+            
+            # 创建新的游戏视图实例
             if self.use_enhanced_version:
-                from main import GAME_WINDOW
-                game_view = EnhancedChildhoodRoom(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-                GAME_WINDOW.show_view(game_view)
+                print("创建增强版游戏视图")
+                game_view = room_view_module.RoomGameView(enhanced=True, username=self.username)
             else:
-                from main import GAME_WINDOW
-                game_view = ChildhoodRoom(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-                GAME_WINDOW.show_view(game_view)
+                print("创建基础版游戏视图")
+                game_view = room_view_module.RoomGameView(enhanced=False, username=self.username)
+            
+            print(f"游戏视图ID: {id(game_view)}")
+            print("游戏视图已创建，准备切换...")
+            
+            # 获取当前窗口对象
+            current_window = self.window
+            print(f"当前窗口ID: {id(current_window)}")
+            
+            # 切换到游戏视图，关闭防重复点击标记
+            self.is_transitioning = False
+            current_window.show_view(game_view)
+            print("已切换到游戏视图")
         except Exception as e:
             print(f"进入游戏时出错: {e}")
+            import traceback
+            traceback.print_exc()
             self.is_transitioning = False
     
     def on_mouse_press(self, x, y, button, modifiers):
