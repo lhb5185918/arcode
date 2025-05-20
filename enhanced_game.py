@@ -38,7 +38,7 @@ class EnhancedChildhoodRoom(arcade.Window):
     
     def on_draw(self):
         """渲染游戏画面"""
-        arcade.start_render()
+        self.clear()
         
         # 绘制背景墙壁
         arcade.draw_rect_filled(
