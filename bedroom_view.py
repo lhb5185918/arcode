@@ -67,10 +67,14 @@ class BedroomView(arcade.View):
         
         # 当前悬停的物品
         self.hovered_item = None
+        
+        # 防止重复点击的标志
+        self.is_transitioning = False
     
     def on_show_view(self):
         """显示视图时调用"""
         arcade.set_background_color(arcade.color.BEIGE)
+        self.is_transitioning = False
     
     def on_update(self, delta_time):
         """更新动画"""
@@ -176,8 +180,27 @@ class BedroomView(arcade.View):
             align="center"
         )
     
+    def direct_to_game(self):
+        """创建并切换到游戏视图"""
+        try:
+            if self.use_enhanced_version:
+                from main import GAME_WINDOW
+                game_view = EnhancedChildhoodRoom(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+                GAME_WINDOW.show_view(game_view)
+            else:
+                from main import GAME_WINDOW
+                game_view = ChildhoodRoom(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+                GAME_WINDOW.show_view(game_view)
+        except Exception as e:
+            print(f"进入游戏时出错: {e}")
+            self.is_transitioning = False
+    
     def on_mouse_press(self, x, y, button, modifiers):
         """鼠标点击事件处理"""
+        # 如果正在切换视图，忽略点击
+        if self.is_transitioning:
+            return
+            
         # 如果在欢迎阶段，点击任意处跳过
         if self.welcome_phase:
             self.welcome_phase = False
@@ -209,12 +232,9 @@ class BedroomView(arcade.View):
         
         # 如果没有点击任何物品且点击的是左键，进入游戏
         if not item_clicked and button == arcade.MOUSE_BUTTON_LEFT:
-            if self.use_enhanced_version:
-                game_view = EnhancedChildhoodRoom(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-            else:
-                game_view = ChildhoodRoom(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-            
-            self.window.show_view(game_view)
+            self.is_transitioning = True
+            # 使用新的方法切换到游戏
+            self.direct_to_game()
     
     def on_mouse_motion(self, x, y, dx, dy):
         """鼠标移动事件处理"""

@@ -111,3 +111,46 @@
 #         if __name__ == "__main__":
 #             main()
 #         ```
+
+# 2. 视图对象共享问题（续）：
+#    - 问题描述：即使采用了上述解决方案，仍然会出现"You are attempting to pass the same view object between multiple windows"错误
+#    - 原因分析：
+#      a) Arcade框架设计中，一个视图对象只能绑定到一个窗口
+#      b) 游戏中可能存在多个窗口实例，或者视图对象在多个地方被重复使用
+#      c) 在场景切换过程中，如果发生重复点击，可能会导致视图对象混乱
+#    - 深入解决方案：
+#      1) 使用全局变量GAME_WINDOW统一管理游戏窗口，并在启动前关闭可能存在的旧窗口：
+#         ```python
+#         # 全局窗口实例
+#         GAME_WINDOW = None
+#         
+#         def main():
+#             global GAME_WINDOW
+#             # 如果已经有窗口实例，关闭它
+#             if GAME_WINDOW is not None:
+#                 GAME_WINDOW.close()
+#             # 创建新窗口
+#             GAME_WINDOW = arcade.Window(...)
+#         ```
+#      2) 在视图类中添加切换锁定机制，防止重复点击导致的问题：
+#         ```python
+#         # 在视图类初始化中
+#         self.is_transitioning = False
+#         
+#         # 在点击处理中
+#         if self.is_transitioning:
+#             return  # 如果正在切换，忽略点击
+#         self.is_transitioning = True  # 标记正在切换
+#         ```
+#      3) 改变场景切换的方式，使用延迟加载替代直接创建：
+#         ```python
+#         def direct_to_game(self):
+#             """创建并切换到游戏视图"""
+#             try:
+#                 from main import GAME_WINDOW  # 导入全局窗口
+#                 game_view = GameClass(...)
+#                 GAME_WINDOW.show_view(game_view)
+#             except Exception as e:
+#                 print(f"进入游戏时出错: {e}")
+#                 self.is_transitioning = False  # 出错时重置标记
+#         ```

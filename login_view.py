@@ -165,22 +165,37 @@ class LoginView(arcade.View):
                 version_switch.style["bg_color"] = arcade.color.DARK_GREEN
                 version_switch.style["bg_color_pressed"] = arcade.color.DARK_PASTEL_GREEN
         
+        # 用于防止重复点击的标志
+        self.is_transitioning = False
+        
         # 登录按钮事件处理
         @login_button.event("on_click")
         def on_login_button_click(event):
+            # 如果正在切换视图，则忽略重复点击
+            if self.is_transitioning:
+                return
+            
+            # 标记正在切换视图
+            self.is_transitioning = True
+            
             # 获取用户名
             username = self.username_input.text if self.username_input.text else "玩家"
             
             try:
-                # 跳转到卧室页面，而不是直接进入游戏
+                # 禁用UI管理器，防止再次点击
+                self.manager.disable()
+                
+                # 创建新的卧室视图
                 bedroom_view = BedroomView(self.use_enhanced_version, username)
+                
+                # 跳转到卧室页面
                 self.window.show_view(bedroom_view)
             except Exception as e:
                 print(f"切换视图时出错: {e}")
-                # 如果发生错误，可以尝试关闭当前视图，然后再创建新视图
-                self.manager.disable()
-                bedroom_view = BedroomView(self.use_enhanced_version, username)
-                self.window.show_view(bedroom_view)
+                # 如果出错，重新启用UI管理器
+                self.manager.enable()
+                # 取消正在切换的标记
+                self.is_transitioning = False
         
         # 添加一个按钮容器，使按钮并排显示
         button_row = arcade.gui.UIBoxLayout(vertical=False, space_between=20)
@@ -295,23 +310,11 @@ class LoginView(arcade.View):
         """显示视图时的处理"""
         arcade.set_background_color(arcade.color.LIGHT_BLUE)
         self.manager.enable()
+        # 重置切换标记
+        self.is_transitioning = False
     
     def on_hide_view(self):
         """隐藏视图时的处理"""
         self.manager.disable()
 
-# 全局变量，用于确保只创建一个窗口实例
-window = None
-
-def main():
-    """主函数"""
-    global window
-    # 如果窗口已存在，则不再创建新窗口
-    if window is None:
-        window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-        login_view = LoginView()
-        window.show_view(login_view)
-        arcade.run()
-
-if __name__ == "__main__":
-    main() 
+# 这里删除了原来的main函数，只使用main.py作为入口点 
