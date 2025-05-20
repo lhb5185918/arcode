@@ -4,6 +4,7 @@ import random
 import math
 from enhanced_game import EnhancedChildhoodRoom
 from interactive_room_game import ChildhoodRoom, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE
+from bedroom_view import BedroomView
 
 # 定义一个随机颜色生成函数，替代arcade.color.random_color()
 def random_color():
@@ -167,16 +168,12 @@ class LoginView(arcade.View):
         # 登录按钮事件处理
         @login_button.event("on_click")
         def on_login_button_click(event):
-            # 这里可以添加真实的用户名密码验证逻辑
-            # 为了演示，这里简单地允许任何登录
-            # 根据版本选择启动不同的游戏
-            if self.use_enhanced_version:
-                game_view = EnhancedChildhoodRoom(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-            else:
-                game_view = ChildhoodRoom(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+            # 获取用户名
+            username = self.username_input.text if self.username_input.text else "玩家"
             
-            # 设置游戏视图
-            self.window.show_view(game_view)
+            # 跳转到卧室页面，而不是直接进入游戏
+            bedroom_view = BedroomView(self.use_enhanced_version, username)
+            self.window.show_view(bedroom_view)
         
         # 添加一个按钮容器，使按钮并排显示
         button_row = arcade.gui.UIBoxLayout(vertical=False, space_between=20)
