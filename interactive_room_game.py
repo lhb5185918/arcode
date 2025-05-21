@@ -26,14 +26,17 @@ class InteractiveObject:
     def draw(self):
         """绘制对象"""
         if self.texture:
-            arcade.draw_texture_rect(
-                texture=self.texture,
-                rect=arcade.rect.XYWH(self.x, self.y, self.width, self.height)
+            arcade.draw_texture_rectangle(
+                center_x=self.x,
+                center_y=self.y,
+                width=self.width,
+                height=self.height,
+                texture=self.texture
             )
         else:
             # 如果没有纹理，使用颜色绘制
-            arcade.draw_rect_filled(
-                arcade.rect.XYWH(self.x, self.y, self.width, self.height),
+            arcade.draw_rectangle_filled(
+                self.x, self.y, self.width, self.height,
                 color=self.color
             )
     
@@ -57,12 +60,15 @@ class Television(InteractiveObject):
     
     def draw(self):
         # 绘制电视外壳
-        arcade.draw_rect_filled(arcade.rect.XYWH(self.x, self.y, self.width, self.height), color=self.color)
+        arcade.draw_rectangle_filled(
+            self.x, self.y, self.width, self.height, 
+            color=self.color
+        )
         
         # 绘制电视屏幕
         screen_color = self.screen_color if not self.is_active else arcade.color.BLUE
-        arcade.draw_rect_filled(
-            arcade.rect.XYWH(self.x, self.y + 10, self.width - 20, self.height - 40),
+        arcade.draw_rectangle_filled(
+            self.x, self.y + 10, self.width - 20, self.height - 40,
             color=screen_color
         )
         
@@ -80,7 +86,7 @@ class Television(InteractiveObject):
                 text=f"频道: {self.channels[self.channel]}",
                 start_x=self.x - 70, start_y=self.y, 
                 color=arcade.color.WHITE, font_size=16, 
-                width=140, align="center"
+                width=int(140), align="center"
             )
     
     def change_channel(self):
@@ -95,7 +101,10 @@ class RemoteControl(InteractiveObject):
     
     def draw(self):
         # 绘制遥控器主体
-        arcade.draw_rect_filled(arcade.rect.XYWH(self.x, self.y, self.width, self.height), color=self.color)
+        arcade.draw_rectangle_filled(
+            self.x, self.y, self.width, self.height, 
+            color=self.color
+        )
         
         # 绘制遥控器按钮
         button_colors = [arcade.color.RED, arcade.color.GREEN, arcade.color.BLUE]
@@ -130,13 +139,13 @@ class ChildhoodRoom(arcade.Window):
         arcade.start_render()
         
         # 绘制背景和墙壁
-        arcade.draw_rect_filled(
-            arcade.rect.XYWH(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT),
+        arcade.draw_rectangle_filled(
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT,
             color=arcade.color.LIGHT_BLUE
         )
         
-        arcade.draw_rect_filled(
-            arcade.rect.XYWH(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, SCREEN_WIDTH, SCREEN_HEIGHT // 2),
+        arcade.draw_rectangle_filled(
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, SCREEN_WIDTH, SCREEN_HEIGHT // 2,
             color=arcade.color.LIGHT_BROWN
         )
         

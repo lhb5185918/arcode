@@ -161,7 +161,7 @@ class BedroomView(arcade.View):
                 font_size=18,
                 anchor_x="center",
                 anchor_y="center",
-                width=SCREEN_WIDTH * 0.75,
+                width=int(SCREEN_WIDTH * 0.75),
                 align="center"
             )
         
@@ -179,7 +179,7 @@ class BedroomView(arcade.View):
             font_size=14,
             anchor_x="center",
             anchor_y="center",
-            width=SCREEN_WIDTH * 0.8,
+            width=int(SCREEN_WIDTH * 0.8),
             align="center"
         )
     

@@ -278,6 +278,20 @@ class Computer(BedroomItem):
             arcade.color.PURPLE
         ]
         self.current_screen = 0
+        
+        # 新增桌面弹出相关属性
+        self.show_desktop = False  # 是否显示桌面
+        self.desktop_size = (400, 300)  # 桌面窗口大小
+        self.desktop_pos = (x, y + 150)  # 桌面窗口位置
+        self.desktop_icons = [
+            {"name": "我的电脑", "x": 60, "y": 50, "color": arcade.color.YELLOW},
+            {"name": "红警", "x": 60, "y": 120, "color": arcade.color.RED},
+            {"name": "QQ", "x": 60, "y": 190, "color": arcade.color.BLUE},
+            {"name": "扫雷", "x": 60, "y": 260, "color": arcade.color.GRAY},
+            {"name": "仙剑奇侠传", "x": 160, "y": 50, "color": arcade.color.GREEN},
+            {"name": "记事本", "x": 160, "y": 120, "color": arcade.color.WHITE}
+        ]
+        self.taskbar_programs = ["开始", "QQ", "我的电脑", "IE浏览器"]
     
     def draw(self):
         """绘制电脑"""
@@ -370,19 +384,155 @@ class Computer(BedroomItem):
                     arcade.color.WHITE
                 )
         
+        # 如果需要显示桌面弹窗
+        if self.show_desktop and self.is_active:
+            self.draw_desktop()
+        
         # 绘制悬停效果
         self.draw_hover_effect()
     
+    def draw_desktop(self):
+        """绘制电脑桌面界面"""
+        desktop_x, desktop_y = self.desktop_pos
+        desktop_width, desktop_height = self.desktop_size
+        
+        # 绘制桌面背景
+        arcade.draw_rectangle_filled(
+            desktop_x, desktop_y,
+            desktop_width, desktop_height,
+            arcade.color.LIGHT_BLUE
+        )
+        
+        # 绘制桌面边框
+        arcade.draw_rectangle_outline(
+            desktop_x, desktop_y,
+            desktop_width, desktop_height,
+            arcade.color.BLACK, 2
+        )
+        
+        # 绘制桌面标题栏
+        arcade.draw_rectangle_filled(
+            desktop_x, desktop_y + desktop_height/2 - 10,
+            desktop_width, 20,
+            arcade.color.DARK_BLUE
+        )
+        
+        # 绘制窗口标题
+        arcade.draw_text(
+            "Windows 98 桌面",
+            start_x=desktop_x - desktop_width/2 + 10,
+            start_y=desktop_y + desktop_height/2 - 10,
+            color=arcade.color.WHITE,
+            font_size=12,
+            anchor_y="center"
+        )
+        
+        # 绘制关闭按钮
+        arcade.draw_rectangle_filled(
+            desktop_x + desktop_width/2 - 10, desktop_y + desktop_height/2 - 10,
+            15, 15,
+            arcade.color.RED
+        )
+        arcade.draw_text(
+            "X",
+            start_x=desktop_x + desktop_width/2 - 10,
+            start_y=desktop_y + desktop_height/2 - 10,
+            color=arcade.color.WHITE,
+            font_size=12,
+            anchor_x="center",
+            anchor_y="center"
+        )
+        
+        # 绘制桌面图标
+        for icon in self.desktop_icons:
+            # 绘制图标背景
+            arcade.draw_rectangle_filled(
+                desktop_x - desktop_width/2 + icon["x"],
+                desktop_y - desktop_height/2 + icon["y"],
+                40, 40,
+                icon["color"]
+            )
+            
+            # 绘制图标名称
+            arcade.draw_text(
+                icon["name"],
+                start_x=desktop_x - desktop_width/2 + icon["x"],
+                start_y=desktop_y - desktop_height/2 + icon["y"] - 25,
+                color=arcade.color.BLACK,
+                font_size=10,
+                anchor_x="center",
+                anchor_y="center",
+                width=60,
+                align="center"
+            )
+        
+        # 绘制任务栏
+        arcade.draw_rectangle_filled(
+            desktop_x, desktop_y - desktop_height/2 + 10,
+            desktop_width, 30,
+            arcade.color.LIGHT_GRAY
+        )
+        
+        # 绘制开始按钮
+        arcade.draw_rectangle_filled(
+            desktop_x - desktop_width/2 + 25, desktop_y - desktop_height/2 + 10,
+            50, 25,
+            arcade.color.GREEN
+        )
+        arcade.draw_text(
+            "开始",
+            start_x=desktop_x - desktop_width/2 + 25,
+            start_y=desktop_y - desktop_height/2 + 10,
+            color=arcade.color.BLACK,
+            font_size=12,
+            anchor_x="center",
+            anchor_y="center"
+        )
+        
+        # 绘制任务栏程序
+        for i, program in enumerate(self.taskbar_programs[1:], 1):
+            arcade.draw_rectangle_filled(
+                desktop_x - desktop_width/2 + 25 + i * 70, desktop_y - desktop_height/2 + 10,
+                60, 20,
+                arcade.color.ALICE_BLUE
+            )
+            arcade.draw_text(
+                program,
+                start_x=desktop_x - desktop_width/2 + 25 + i * 70,
+                start_y=desktop_y - desktop_height/2 + 10,
+                color=arcade.color.BLACK,
+                font_size=10,
+                anchor_x="center",
+                anchor_y="center"
+            )
+        
+        # 绘制时钟
+        time_str = "16:30"
+        arcade.draw_text(
+            time_str,
+            start_x=desktop_x + desktop_width/2 - 30,
+            start_y=desktop_y - desktop_height/2 + 10,
+            color=arcade.color.BLACK,
+            font_size=12,
+            anchor_y="center"
+        )
+    
     def on_click(self):
         """点击电脑时的处理"""
-        if self.is_active:
-            # 如果电脑已经开着，切换屏幕
-            self.current_screen = (self.current_screen + 1) % len(self.screen_colors)
-            self.message = f"你切换到了{'QQ|游戏|网页|聊天'.split('|')[self.current_screen]}界面"
-        else:
+        if not self.is_active:
             # 开机
             self.is_active = True
-            self.message = "电脑开机了，满满的都是回忆..."
+            self.show_desktop = True
+            self.message = "电脑开机了，Windows 98桌面出现了..."
+        else:
+            # 如果已经开机，切换显示桌面状态
+            self.show_desktop = not self.show_desktop
+            if self.show_desktop:
+                self.message = "你打开了电脑桌面"
+            else:
+                # 切换屏幕
+                self.current_screen = (self.current_screen + 1) % len(self.screen_colors)
+                self.message = f"你切换到了{'QQ|游戏|网页|聊天'.split('|')[self.current_screen]}界面"
         
         return self.message
     
@@ -390,11 +540,72 @@ class Computer(BedroomItem):
         """右键点击电脑时的处理，关机"""
         if self.is_active:
             self.is_active = False
+            self.show_desktop = False
             self.message = "你关闭了电脑"
         else:
             self.message = "电脑已经关机了"
         
         return self.message
+        
+    def is_desktop_close_clicked(self, x, y):
+        """检查是否点击了桌面窗口的关闭按钮"""
+        if not self.show_desktop:
+            return False
+        
+        desktop_x, desktop_y = self.desktop_pos
+        desktop_width, desktop_height = self.desktop_size
+        
+        # 关闭按钮的位置
+        close_btn_x = desktop_x + desktop_width/2 - 10
+        close_btn_y = desktop_y + desktop_height/2 - 10
+        
+        # 判断点击位置是否在关闭按钮范围内
+        if (abs(x - close_btn_x) <= 10 and 
+            abs(y - close_btn_y) <= 10):
+            return True
+            
+        return False
+        
+    def handle_desktop_click(self, x, y):
+        """处理桌面内点击"""
+        if not self.show_desktop:
+            return None
+        
+        desktop_x, desktop_y = self.desktop_pos
+        desktop_width, desktop_height = self.desktop_size
+        
+        # 判断点击是否在桌面范围内
+        if (abs(x - desktop_x) <= desktop_width/2 and 
+            abs(y - desktop_y) <= desktop_height/2):
+            
+            # 检查是否点击了关闭按钮
+            if self.is_desktop_close_clicked(x, y):
+                self.show_desktop = False
+                return "关闭了桌面窗口"
+                
+            # 检查是否点击了任何桌面图标
+            for icon in self.desktop_icons:
+                icon_x = desktop_x - desktop_width/2 + icon["x"]
+                icon_y = desktop_y - desktop_height/2 + icon["y"]
+                
+                if (abs(x - icon_x) <= 20 and 
+                    abs(y - icon_y) <= 20):
+                    return f"点击了'{icon['name']}'图标"
+            
+            # 检查是否点击了任务栏程序
+            if abs(y - (desktop_y - desktop_height/2 + 10)) <= 15:
+                for i, program in enumerate(self.taskbar_programs):
+                    program_x = desktop_x - desktop_width/2 + 25 + i * 70
+                    
+                    if abs(x - program_x) <= 30:
+                        if program == "开始":
+                            return "点击了开始菜单"
+                        else:
+                            return f"打开了{program}"
+            
+            return "点击了桌面空白处"
+        
+        return None
 
 
 class HomeworkBook(BedroomItem):
@@ -437,6 +648,7 @@ class HomeworkBook(BedroomItem):
             font_size=12,
             anchor_x="center",
             anchor_y="center",
+            width=int(self.width),
             align="center"
         )
         
@@ -483,7 +695,7 @@ class HomeworkBook(BedroomItem):
                 start_y=self.y + self.height * 0.3,
                 color=arcade.color.BLACK,
                 font_size=8,
-                width=self.width * 0.9
+                width=int(self.width * 0.9)  # 确保width是一个整数
             )
         
         # 绘制悬停效果
@@ -531,6 +743,7 @@ class Window(BedroomItem):
         """
         super().__init__(x, y, width, height, "窗户")
         self.is_open = False  # 窗户是否打开
+        # 默认设置为night，与GameManager的默认背景匹配
         self.day_time = "night"  # 白天或夜晚
         self.messages = {
             "night": [
@@ -690,13 +903,23 @@ class Window(BedroomItem):
         
         return self.message
     
-    def change_time(self):
-        """切换白天和黑夜"""
+    def change_time(self, on_time_change=None):
+        """
+        切换白天和黑夜
+        
+        参数:
+            on_time_change (callable): 时间变化时的回调函数，接收当前时间状态("day"或"night")作为参数
+        """
+        old_time = self.day_time
         if self.day_time == "night":
             self.day_time = "day"
             self.message = "天亮了，又是美好的一天"
         else:
             self.day_time = "night"
             self.message = "夜幕降临，繁星点点"
+        
+        # 如果提供了回调函数，通知时间变化
+        if on_time_change is not None and old_time != self.day_time:
+            on_time_change(self.day_time)
         
         return self.message 

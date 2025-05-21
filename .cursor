@@ -154,3 +154,113 @@
 #                 print(f"进入游戏时出错: {e}")
 #                 self.is_transitioning = False  # 出错时重置标记
 #         ```
+
+# 3. Arcade 2.6.17中GUI模块导入和绘制文本问题：
+#    - 问题描述：游戏启动时报错"AttributeError: module 'arcade' has no attribute 'gui'"以及运行时报错"When the parameters 'multiline' and 'wrap_lines' are True, the parameter 'width' must be a number"
+#    - 原因分析：
+#      a) Arcade 2.6.17版本中GUI模块需要单独导入，不能作为arcade模块的直接属性访问
+#      b) draw_text函数在绘制多行文本时，width参数必须是数字类型，而不能是表达式或浮点数
+#    - 解决方案：
+#      1) 正确导入GUI模块：
+#         ```python
+#         import arcade
+#         import arcade.gui  # 单独导入GUI模块
+#         ```
+#      2) 确保draw_text函数的width参数是整数：
+#         ```python
+#         # 不正确的用法（可能导致错误）
+#         arcade.draw_text(
+#             text="示例文本",
+#             start_x=x, start_y=y,
+#             width=SCREEN_WIDTH * 0.8,  # 这可能是浮点数
+#             align="center"
+#         )
+#         
+#         # 正确的用法
+#         arcade.draw_text(
+#             text="示例文本",
+#             start_x=x, start_y=y,
+#             width=int(SCREEN_WIDTH * 0.8),  # 确保是整数
+#             align="center"
+#         )
+#         ```
+#      3) 可以编写修复脚本自动处理所有文件中的draw_text调用：
+#         ```python
+#         import re
+#         
+#         def fix_draw_text_in_file(file_path):
+#             with open(file_path, 'r', encoding='utf-8') as f:
+#                 content = f.read()
+#             
+#             pattern = r'arcade\.draw_text\([^)]*width=([^,\)]+)'
+#             
+#             def replace_width(match):
+#                 width_param = match.group(1).strip()
+#                 if not width_param.isdigit() and not width_param.startswith('int('):
+#                     return match.group(0).replace(f'width={width_param}', f'width=int({width_param})')
+#                 return match.group(0)
+#             
+#             modified_content = re.sub(pattern, replace_width, content)
+#             
+#             if content != modified_content:
+#                 with open(file_path, 'w', encoding='utf-8') as f:
+#                     f.write(modified_content)
+#         ```
+
+# 4. Arcade 2.6.17中绘图函数命名不一致问题：
+#    - 问题描述：游戏运行时报错"AttributeError: module 'arcade' has no attribute 'draw_rect_filled'"
+#    - 原因分析：Arcade 2.6.17版本中，绘制函数的命名与较新版本不同，例如绘制矩形使用的是`draw_rectangle_filled`而不是`draw_rect_filled`
+#    - 解决方案：
+#      1) 使用正确的函数名：
+#         ```python
+#         # 错误的用法（较新版本）
+#         arcade.draw_rect_filled(arcade.rect.XYWH(x, y, width, height), color)
+#         
+#         # 正确的用法（2.6.17版本）
+#         arcade.draw_rectangle_filled(x, y, width, height, color)
+#         ```
+#      2) 注意参数格式的不同：
+#         - 较新版本使用`arcade.rect.XYWH`对象作为第一个参数
+#         - 2.6.17版本直接使用x, y, width, height作为独立参数
+#      3) 其他类似函数也要注意命名差异，比如：
+#         - draw_circle_filled
+#         - draw_rectangle_outline
+
+# 5. Arcade 2.6.17中文本绘制参数不支持background_color：
+#    - 问题描述：游戏运行时报错"TypeError: draw_text() got an unexpected keyword argument 'background_color'"
+#    - 原因分析：Arcade 2.6.17版本的draw_text函数不支持background_color参数，这是较新版本才有的功能
+#    - 解决方案：
+#      1) 移除background_color参数：
+#         ```python
+#         # 错误的用法（较新版本）
+#         arcade.draw_text(
+#             text="示例文本",
+#             start_x=x, start_y=y,
+#             color=arcade.color.WHITE,
+#             background_color=(0, 0, 0, 150)  # 这在2.6.17中不支持
+#         )
+#         
+#         # 正确的用法（2.6.17版本）
+#         arcade.draw_text(
+#             text="示例文本",
+#             start_x=x, start_y=y,
+#             color=arcade.color.WHITE
+#         )
+#         ```
+#      2) 通过单独绘制背景矩形来实现类似效果：
+#         ```python
+#         # 先绘制背景矩形
+#         text_width = len(text) * 8  # 估计文本宽度
+#         arcade.draw_rectangle_filled(
+#             x + text_width/2, y + 8,  # 矩形中心位置
+#             text_width, 20,           # 矩形宽高
+#             (0, 0, 0, 150)            # 颜色和透明度
+#         )
+#         
+#         # 再绘制文本
+#         arcade.draw_text(
+#             text="示例文本",
+#             start_x=x, start_y=y,
+#             color=arcade.color.WHITE
+#         )
+#         ```
