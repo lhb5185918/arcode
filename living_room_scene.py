@@ -29,9 +29,9 @@ class LightEffect:
             alpha *= random.uniform(0.85, 1.0)
             
         # 绘制多层渐变光晕，使用更低的透明度和更少的图层
-        for i in range(5):  # 减少图层数量
-            radius = self.radius * (1 - i/5)
-            alpha_i = alpha * (1 - i/5) * self.intensity * 0.5  # 降低整体透明度
+        for i in range(3):  # 进一步减少图层数量
+            radius = self.radius * (1 - i/3)
+            alpha_i = alpha * (1 - i/3) * self.intensity * 0.35  # 进一步降低整体透明度
             
             # 将alpha值裁剪到合理范围内
             alpha_i = min(max(alpha_i, 0), 1)
@@ -48,7 +48,7 @@ class Shadow:
     def __init__(self, obj, light_source):
         self.obj = obj
         self.light_source = light_source
-        self.shadow_color = (0, 0, 0, 80)  # 半透明黑色
+        self.shadow_color = (0, 0, 0, 60)  # 更透明的阴影
     
     def draw(self):
         """绘制阴影"""
@@ -65,9 +65,9 @@ class Shadow:
         dx /= distance
         dy /= distance
         
-        # 阴影长度和强度
-        shadow_length = min(self.obj.height * 1.5, 150)
-        shadow_intensity = min(1.0, 200 / distance) * 0.5  # 降低阴影强度
+        # 阴影长度和强度 - 近光源阴影短，远光源阴影长
+        shadow_length = min(distance * 0.3, 120)  # 使阴影长度与距离关联
+        shadow_intensity = min(1.0, 150 / distance) * 0.4  # 降低阴影强度
         
         # 计算阴影点
         shadow_points = []
@@ -80,20 +80,45 @@ class Shadow:
         left_x = bottom_x - self.obj.width/2
         right_x = bottom_x + self.obj.width/2
         
+        # 计算阴影投射方向 - 与光源的相对位置决定方向
+        shadow_dir_x = dx
+        shadow_dir_y = min(dy, 0.1)  # 限制垂直投影，使阴影主要在水平方向延伸
+        
         # 添加物体底部边缘点
         shadow_points.append((left_x, bottom_y))
         shadow_points.append((right_x, bottom_y))
         
-        # 添加阴影投射点
-        offset_x = dx * shadow_length
-        offset_y = dy * shadow_length
+        # 添加阴影投射点 - 使用平滑过渡
+        offset_x = shadow_dir_x * shadow_length
+        offset_y = shadow_dir_y * shadow_length
         
-        shadow_points.append((right_x + offset_x, bottom_y + offset_y))
-        shadow_points.append((left_x + offset_x, bottom_y + offset_y))
+        # 阴影尾部宽度略大于物体宽度，营造扩散效果
+        shadow_width_factor = 1.2
+        shadow_right = right_x + offset_x + (shadow_width_factor - 1) * self.obj.width/2
+        shadow_left = left_x + offset_x - (shadow_width_factor - 1) * self.obj.width/2
         
-        # 绘制阴影多边形
-        shadow_color = (0, 0, 0, int(80 * shadow_intensity))  # 降低阴影透明度
+        shadow_points.append((shadow_right, bottom_y + offset_y))
+        shadow_points.append((shadow_left, bottom_y + offset_y))
+        
+        # 绘制阴影多边形 - 边缘平滑
+        shadow_color = (0, 0, 0, int(60 * shadow_intensity))  # 降低阴影透明度
         arcade.draw_polygon_filled(shadow_points, shadow_color)
+        
+        # 绘制次级阴影 - 更淡更模糊的边缘效果
+        if shadow_intensity > 0.2:
+            secondary_shadow_points = []
+            secondary_offset_x = offset_x * 1.2
+            secondary_offset_y = offset_y * 1.2
+            secondary_shadow_right = shadow_right + (shadow_right - right_x) * 0.3
+            secondary_shadow_left = shadow_left + (shadow_left - left_x) * 0.3
+            
+            secondary_shadow_points.append((shadow_right, bottom_y + offset_y))
+            secondary_shadow_points.append((shadow_left, bottom_y + offset_y))
+            secondary_shadow_points.append((secondary_shadow_left, bottom_y + secondary_offset_y))
+            secondary_shadow_points.append((secondary_shadow_right, bottom_y + secondary_offset_y))
+            
+            secondary_shadow_color = (0, 0, 0, int(30 * shadow_intensity))
+            arcade.draw_polygon_filled(secondary_shadow_points, secondary_shadow_color)
 
 class CeilingLamp(InteractiveObject):
     """吊灯类"""
@@ -102,8 +127,8 @@ class CeilingLamp(InteractiveObject):
         super().__init__(x, y, size, size, color=color_with_alpha)
         self.light_color = light_color
         self.size = size
-        # 减小灯光半径
-        self.light_effect = LightEffect(x, y, radius=size*2, color=self.light_color+(50,))
+        # 继续减小灯光半径
+        self.light_effect = LightEffect(x, y, radius=size*1.2, color=self.light_color+(50,))
         self.brightness = 0.0
         self.target_brightness = 0.0
         self.transition_speed = 0.05
@@ -144,6 +169,13 @@ class CeilingLamp(InteractiveObject):
                 bulb_color
             )
             
+            # 绘制灯罩内的亮光
+            inner_glow_color = list(self.light_color) + [int(120 * self.brightness)]
+            arcade.draw_circle_filled(
+                self.x, self.y, self.size/2 - 5, 
+                inner_glow_color
+            )
+            
             # 绘制光照效果（可选）
             if render_light:
                 self.light_effect.draw(alpha=self.brightness * 0.7, flicker=True)  # 降低亮度
@@ -154,8 +186,8 @@ class FloorLamp(InteractiveObject):
         super().__init__(x, y, 40, height, color=arcade.color.DARK_BROWN)
         self.light_color = light_color
         self.height = height
-        # 减小灯光半径
-        self.light_effect = LightEffect(x, y + height/2, radius=height*0.7, color=self.light_color+(50,))
+        # 继续减小灯光半径
+        self.light_effect = LightEffect(x, y + height/2, radius=height*0.4, color=self.light_color+(50,))
         self.brightness = 0.0
         self.target_brightness = 0.0
         self.transition_speed = 0.05
@@ -200,6 +232,13 @@ class FloorLamp(InteractiveObject):
                 bulb_color
             )
             
+            # 绘制灯罩内的亮光
+            inner_glow_color = list(self.light_color) + [int(120 * self.brightness)]
+            arcade.draw_ellipse_filled(
+                self.x, self.y + self.height/4, 55, 75, 
+                inner_glow_color
+            )
+            
             # 绘制光照效果（可选）
             if render_light:
                 self.light_effect.draw(alpha=self.brightness * 0.7, flicker=False)  # 降低亮度
@@ -221,8 +260,8 @@ class TVBacklight(InteractiveObject):
         ]
         self.current_color_idx = 0
         self.color_transition = 0.0
-        # 减小电视背光范围
-        self.light_effect = LightEffect(tv.x, tv.y, radius=tv.width*0.7, color=self.colors[0]+(30,))
+        # 继续减小电视背光范围
+        self.light_effect = LightEffect(tv.x, tv.y, radius=tv.width*0.3, color=self.colors[0]+(30,))
         self.brightness = 0.0
         self.is_active = False
         
@@ -258,7 +297,7 @@ class TVBacklight(InteractiveObject):
             
         # 绘制电视背光效果
         if render_light:
-            self.light_effect.draw(alpha=self.brightness * 0.6)  # 降低亮度
+            self.light_effect.draw(alpha=self.brightness * 0.5)  # 降低亮度
     
     def on_click(self):
         """点击事件处理"""
@@ -324,9 +363,9 @@ class LightingRenderer:
         """渲染场景基础部分"""
         # 计算房间基础颜色
         bg_color = (
-            int(40 + 200 * env_brightness),
-            int(40 + 200 * env_brightness),
-            int(50 + 180 * env_brightness)
+            int(60 + 180 * env_brightness),  # 提高基础亮度
+            int(60 + 180 * env_brightness),
+            int(70 + 160 * env_brightness)
         )
         
         # 绘制背景墙壁
@@ -337,9 +376,9 @@ class LightingRenderer:
         
         # 绘制地板
         floor_color = (
-            int(40 + 100 * env_brightness),
-            int(20 + 60 * env_brightness),
-            int(0 + 40 * env_brightness)
+            int(60 + 100 * env_brightness),  # 提高基础亮度
+            int(40 + 60 * env_brightness),
+            int(20 + 40 * env_brightness)
         )
         arcade.draw_rectangle_filled(
             SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, SCREEN_WIDTH, SCREEN_HEIGHT // 2,
@@ -348,9 +387,9 @@ class LightingRenderer:
         
         # 绘制窗户
         window_color = (
-            int(100 + 100 * env_brightness),
-            int(150 + 80 * env_brightness),
-            int(200 + 50 * env_brightness)
+            int(120 + 100 * env_brightness),  # 提高基础亮度
+            int(170 + 80 * env_brightness),
+            int(220 + 30 * env_brightness)
         )
         arcade.draw_rectangle_filled(
             SCREEN_WIDTH - 200, SCREEN_HEIGHT - 150, 200, 150,
@@ -391,9 +430,9 @@ class LightingRenderer:
                 
     def calculate_environment_brightness(self):
         """计算环境亮度"""
-        env_brightness = 0.1  # 基础亮度
+        env_brightness = 0.2  # 提高基础亮度
         for light in self.light_sources:
-            env_brightness += getattr(light, "brightness", 0) * 0.15  # 降低灯光对整体亮度的影响
+            env_brightness += getattr(light, "brightness", 0) * 0.25  # 增加灯光对整体亮度的影响
         
         return min(env_brightness, 1.0)
 
@@ -585,9 +624,9 @@ class LivingRoom(arcade.Window):
             # 简单渲染 - 旧的渲染方式
             # 房间基础颜色
             bg_color = (
-                int(40 + 200 * env_brightness),
-                int(40 + 200 * env_brightness),
-                int(50 + 180 * env_brightness)
+                int(60 + 180 * env_brightness),  # 提高基础亮度
+                int(60 + 180 * env_brightness),
+                int(70 + 160 * env_brightness)
             )
             
             # 绘制背景墙壁
@@ -598,9 +637,9 @@ class LivingRoom(arcade.Window):
             
             # 绘制地板
             floor_color = (
-                int(40 + 100 * env_brightness),
-                int(20 + 60 * env_brightness),
-                int(0 + 40 * env_brightness)
+                int(60 + 100 * env_brightness),  # 提高基础亮度
+                int(40 + 60 * env_brightness),
+                int(20 + 40 * env_brightness)
             )
             arcade.draw_rectangle_filled(
                 SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, SCREEN_WIDTH, SCREEN_HEIGHT // 2,
@@ -609,9 +648,9 @@ class LivingRoom(arcade.Window):
             
             # 绘制窗户
             window_color = (
-                int(100 + 100 * env_brightness),
-                int(150 + 80 * env_brightness),
-                int(200 + 50 * env_brightness)
+                int(120 + 100 * env_brightness),  # 提高基础亮度
+                int(170 + 80 * env_brightness),
+                int(220 + 30 * env_brightness)
             )
             arcade.draw_rectangle_filled(
                 SCREEN_WIDTH - 200, SCREEN_HEIGHT - 150, 200, 150,
